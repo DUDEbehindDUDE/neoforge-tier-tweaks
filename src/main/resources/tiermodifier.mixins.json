@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.dudebehinddude.tiermodifier.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "tiermodifier.refmap.json",
+  "mixins": [
+    "AetherItemTiersMixin",
+    "TFArmorMaterialsMixin",
+    "TFToolMaterialsMixin",
+    "UGArmorMaterialsMixin",
+    "UGItemTiersMixin",
+    "UndergardenArmorItemMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
