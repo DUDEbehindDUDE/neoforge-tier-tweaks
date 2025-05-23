@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.mojang.logging.LogUtils;
+import io.github.razordevs.deep_aether.init.DATiers;
 import net.minecraft.world.item.ArmorItem;
 import net.neoforged.fml.loading.FMLPaths;
 import org.slf4j.Logger;
@@ -59,16 +60,24 @@ public class ConfigHandler {
     }
 
     private static void generateDefaultConfig() {
+        Map<String, Object> defaultStructure = new HashMap<>();
         Function<int[], Map<String, Integer>> createDefenseMap = (defenses) -> {
             Map<String, Integer> defenseMap = new HashMap<>();
-            ArmorItem.Type[] types = ArmorItem.Type.values();
-            for (int i = 0; i < defenses.length && i < types.length; i++) {
-                defenseMap.put(types[i].name(), defenses[i]);
+            // Because it's all in this order and I just realized it :P
+            ArmorItem.Type[] orderedTypes = {
+                    ArmorItem.Type.BOOTS,
+                    ArmorItem.Type.LEGGINGS,
+                    ArmorItem.Type.CHESTPLATE,
+                    ArmorItem.Type.HELMET,
+                    ArmorItem.Type.BODY
+            };
+
+            for (int i = 0; i < defenses.length && i < orderedTypes.length; i++) {
+                defenseMap.put(orderedTypes[i].name(), defenses[i]);
             }
+
             return defenseMap;
         };
-
-        Map<String, Object> defaultStructure = new HashMap<>();
 
         // --- Aether Tiers Defaults ---
         Map<String, Object> aetherTiersSection = new HashMap<>();
@@ -81,9 +90,18 @@ public class ConfigHandler {
             tierProperties.put("enchantability", tier.getEnchantmentValue());
             aetherTiersSection.put(tierName, tierProperties);
         }
+        for (DATiers tier : DATiers.values()) {
+            String tierName = tier.name();
+            Map<String, Object> tierProperties = new HashMap<>();
+            tierProperties.put("maxUses", tier.getUses());
+            tierProperties.put("efficiency", tier.getSpeed());
+            tierProperties.put("attackDamage", tier.getAttackDamageBonus());
+            tierProperties.put("enchantability", tier.getEnchantmentValue());
+            aetherTiersSection.put(tierName, tierProperties);
+        }
         defaultStructure.put("aether_tiers", aetherTiersSection);
 
-        // --- Aether Armors Defaults ---
+        // --- Aether Armor Defaults ---
         Map<String, Object> aetherArmorSection = new HashMap<>();
 
         Map<String, Object> zaniteProperties = new HashMap<>();
@@ -134,6 +152,28 @@ public class ConfigHandler {
         sentryProperties.put("toughness", 0.0F);
         sentryProperties.put("knockbackResistance", 0.0F);
         aetherArmorSection.put("sentry", sentryProperties);
+
+        // Deep Aether
+        Map<String, Object> stratusProperties = new HashMap<>();
+        stratusProperties.put("defense", createDefenseMap.apply(new int[]{3, 6, 8, 3}));
+        stratusProperties.put("enchantability", 15);
+        stratusProperties.put("toughness", 1.5F);
+        stratusProperties.put("knockbackResistance", 0.15F);
+        aetherArmorSection.put("stratus", stratusProperties);
+
+        Map<String, Object> stormforgedProperties = new HashMap<>();
+        stormforgedProperties.put("defense", createDefenseMap.apply(new int[]{3, 6, 8, 3}));
+        stormforgedProperties.put("enchantability", 10);
+        stormforgedProperties.put("toughness", 1.5F);
+        stormforgedProperties.put("knockbackResistance", 0.15F);
+        aetherArmorSection.put("stormforged", stormforgedProperties);
+
+        Map<String, Object> skyjadeProperties = new HashMap<>();
+        skyjadeProperties.put("defense", createDefenseMap.apply(new int[]{3, 6, 8, 3}));
+        skyjadeProperties.put("enchantability", 10);
+        skyjadeProperties.put("toughness", 0.0F);
+        skyjadeProperties.put("knockbackResistance", 0.0F);
+        aetherArmorSection.put("skyjade", skyjadeProperties);
 
         defaultStructure.put("aether_armor_materials", aetherArmorSection);
 
@@ -330,6 +370,38 @@ public class ConfigHandler {
 
     // --- Helper method to get a value for Aether tiers ---
     public static <T extends Number> T getAetherValue(AetherItemTiers tier, String key, T defaultValue) {
+        if (loadedConfigData == null || !loadedConfigData.containsKey("aether_tiers")) {
+            return defaultValue;
+        }
+        Map<String, JsonElement> tierSection = null;
+        JsonElement tierElement = loadedConfigData.get("aether_tiers").get(tier.name());
+        if (tierElement != null && tierElement.isJsonObject()) {
+            tierSection = tierElement.getAsJsonObject().asMap();
+        }
+
+        if (tierSection != null && tierSection.containsKey(key)) {
+            JsonElement valueElement = tierSection.get(key);
+            try {
+                if (defaultValue instanceof Integer) {
+                    return (T) Integer.valueOf(valueElement.getAsInt());
+                } else if (defaultValue instanceof Float) {
+                    return (T) Float.valueOf(valueElement.getAsFloat());
+                } else if (defaultValue instanceof Double) {
+                    return (T) Double.valueOf(valueElement.getAsDouble());
+                }
+                LOGGER.warn("Unhandled number type {} for config key {}. Returning default.", defaultValue.getClass().getName(), key);
+                return defaultValue;
+
+            } catch (NumberFormatException | IllegalStateException e) {
+                LOGGER.warn("Invalid number format for key '{}' in tier '{}'. Using default value '{}'.", key, tier.name(), defaultValue, e);
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    // --- Helper method to get a value for Deep Aether tiers ---
+    public static <T extends Number> T getDeepAetherValue(DATiers tier, String key, T defaultValue) {
         if (loadedConfigData == null || !loadedConfigData.containsKey("aether_tiers")) {
             return defaultValue;
         }

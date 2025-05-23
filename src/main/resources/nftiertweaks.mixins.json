@@ -7,6 +7,8 @@
   "mixins": [
     "AetherArmorMaterialsMixin",
     "AetherItemTiersMixin",
+    "DAArmorMaterialsMixin",
+    "DATiersMixin",
     "TFArmorMaterialsMixin",
     "TFToolMaterialsMixin",
     "UGArmorMaterialsMixin",

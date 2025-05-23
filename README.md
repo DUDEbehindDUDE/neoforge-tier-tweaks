@@ -6,10 +6,11 @@ some attributes of the tiers of tools and armor of supported mods in a JSON file
 creators. It supports the following mods:
 
 - The Aether
+- Deep Aether
 - The Twilight Forest
 - The Undergarden
 
-All 3 of these are currently hard dependencies because this was primarily developed for my modpack (so I didn't put much
+All 4 of these are currently hard dependencies because this was primarily developed for my modpack (so I didn't put much
 effort into this mod); however, if there is enough demand I may expand this to more mods and code this more better (TM).
 
 ## 🛠️ Configuration

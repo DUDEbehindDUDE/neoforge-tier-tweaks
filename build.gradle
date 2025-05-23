@@ -124,6 +124,7 @@ dependencies {
 
     implementation "maven.modrinth:aether:1.21.1-1.5.8-neoforge"
     implementation "maven.modrinth:owo-lib:0.12.15.1-beta.3+1.21"
+    implementation "maven.modrinth:deep-aether:1.21.1-1.1.2"
 
     implementation "maven.modrinth:the-undergarden:0.8.22"
 
