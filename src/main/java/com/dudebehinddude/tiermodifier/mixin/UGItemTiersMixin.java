@@ -15,7 +15,6 @@ public class UGItemTiersMixin {
         UGItemTiers currentTier = (UGItemTiers)(Object)this;
         int originalUses = cir.getReturnValue();
 
-        // Change "maxUses" to "durability" to match config
         int configuredUses = ConfigHandler.getUGItemValue(currentTier, "durability", originalUses);
 
         if (configuredUses != originalUses) {
@@ -29,7 +28,6 @@ public class UGItemTiersMixin {
         UGItemTiers currentTier = (UGItemTiers)(Object)this;
         float originalSpeed = cir.getReturnValue();
 
-        // Change "efficiency" to "speed" to match config
         float configuredSpeed = ConfigHandler.getUGItemValue(currentTier, "speed", originalSpeed);
 
         if (configuredSpeed != originalSpeed) {
@@ -43,7 +41,6 @@ public class UGItemTiersMixin {
         UGItemTiers currentTier = (UGItemTiers)(Object)this;
         float originalDamage = cir.getReturnValue();
 
-        // Change "attackDamage" to "damage" to match config
         float configuredDamage = ConfigHandler.getUGItemValue(currentTier, "damage", originalDamage);
 
         if (configuredDamage != originalDamage) {
@@ -57,7 +54,6 @@ public class UGItemTiersMixin {
         UGItemTiers currentTier = (UGItemTiers)(Object)this;
         int originalEnchantability = cir.getReturnValue();
 
-        // Change "enchantability" to "enchantmentValue" to match config
         int configuredEnchantability = ConfigHandler.getUGItemValue(currentTier, "enchantmentValue", originalEnchantability);
 
         if (configuredEnchantability != originalEnchantability) {

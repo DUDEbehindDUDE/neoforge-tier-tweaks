@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Look man, I didn't want to deal with custom JSON configs (the forge ones load,
- * too late to use), so I had Gemini write like 90% of this file. I'll rewrite it
- * at some point (tm).
+ * Custom JSON config handler because item registry happens before neoforge configs load
+ * This file is super messy right now because I had Gemini generate like 90% of it (look
+ * man I just really didn't want to deal with custom JSON configs at the time 😭)
  */
 public class ConfigHandler {
 
@@ -42,7 +42,8 @@ public class ConfigHandler {
         }
 
         try (Reader reader = Files.newBufferedReader(CONFIG_FILE_PATH)) {
-            loadedConfigData = GSON.fromJson(reader, new TypeToken<Map<String, Map<String, JsonElement>>>(){}.getType());
+            loadedConfigData = GSON.fromJson(reader, new TypeToken<Map<String, Map<String, JsonElement>>>() {
+            }.getType());
             LOGGER.info("Successfully loaded configuration file.");
         } catch (JsonParseException e) {
             LOGGER.error("Error parsing configuration file: {}", CONFIG_FILE_PATH, e);
@@ -58,6 +59,15 @@ public class ConfigHandler {
     }
 
     private static void generateDefaultConfig() {
+        Function<int[], Map<String, Integer>> createDefenseMap = (defenses) -> {
+            Map<String, Integer> defenseMap = new HashMap<>();
+            ArmorItem.Type[] types = ArmorItem.Type.values();
+            for (int i = 0; i < defenses.length && i < types.length; i++) {
+                defenseMap.put(types[i].name(), defenses[i]);
+            }
+            return defenseMap;
+        };
+
         Map<String, Object> defaultStructure = new HashMap<>();
 
         // --- Aether Tiers Defaults ---
@@ -73,17 +83,62 @@ public class ConfigHandler {
         }
         defaultStructure.put("aether_tiers", aetherTiersSection);
 
+        // --- Aether Armors Defaults ---
+        Map<String, Object> aetherArmorSection = new HashMap<>();
+
+        Map<String, Object> zaniteProperties = new HashMap<>();
+        zaniteProperties.put("defense", createDefenseMap.apply(new int[]{2, 5, 6, 2}));
+        zaniteProperties.put("enchantability", 9);
+        zaniteProperties.put("toughness", 0.0F);
+        zaniteProperties.put("knockbackResistance", 0.0F);
+        aetherArmorSection.put("zanite", zaniteProperties);
+
+        Map<String, Object> gravititeProperties = new HashMap<>();
+        gravititeProperties.put("defense", createDefenseMap.apply(new int[]{3, 6, 8, 3}));
+        gravititeProperties.put("enchantability", 10);
+        gravititeProperties.put("toughness", 2.0F);
+        gravititeProperties.put("knockbackResistance", 0.0F);
+        aetherArmorSection.put("gravitite", gravititeProperties);
+
+        Map<String, Object> neptuneProperties = new HashMap<>();
+        neptuneProperties.put("defense", createDefenseMap.apply(new int[]{2, 5, 6, 2}));
+        neptuneProperties.put("enchantability", 10);
+        neptuneProperties.put("toughness", 1.0F);
+        neptuneProperties.put("knockbackResistance", 0.0F);
+        aetherArmorSection.put("neptune", neptuneProperties);
+
+        Map<String, Object> valkyrieProperties = new HashMap<>();
+        valkyrieProperties.put("defense", createDefenseMap.apply(new int[]{3, 6, 8, 3}));
+        valkyrieProperties.put("enchantability", 10);
+        valkyrieProperties.put("toughness", 2.0F);
+        valkyrieProperties.put("knockbackResistance", 0.0F);
+        aetherArmorSection.put("valkyrie", valkyrieProperties);
+
+        Map<String, Object> phoenixProperties = new HashMap<>();
+        phoenixProperties.put("defense", createDefenseMap.apply(new int[]{3, 6, 8, 3}));
+        phoenixProperties.put("enchantability", 10);
+        phoenixProperties.put("toughness", 2.0F);
+        phoenixProperties.put("knockbackResistance", 0.0F);
+        aetherArmorSection.put("phoenix", phoenixProperties);
+
+        Map<String, Object> obsidianProperties = new HashMap<>();
+        obsidianProperties.put("defense", createDefenseMap.apply(new int[]{3, 6, 8, 3}));
+        obsidianProperties.put("enchantability", 15);
+        obsidianProperties.put("toughness", 3.0F);
+        obsidianProperties.put("knockbackResistance", 0.0F);
+        aetherArmorSection.put("obsidian", obsidianProperties);
+
+        Map<String, Object> sentryProperties = new HashMap<>();
+        sentryProperties.put("defense", createDefenseMap.apply(new int[]{2, 5, 6, 2}));
+        sentryProperties.put("enchantability", 9);
+        sentryProperties.put("toughness", 0.0F);
+        sentryProperties.put("knockbackResistance", 0.0F);
+        aetherArmorSection.put("sentry", sentryProperties);
+
+        defaultStructure.put("aether_armor_materials", aetherArmorSection);
+
         // --- Twilight Forest Armor Material Defaults ---
         Map<String, Object> tfArmorSection = new HashMap<>();
-
-        Function<int[], Map<String, Integer>> createDefenseMap = (defenses) -> {
-            Map<String, Integer> defenseMap = new HashMap<>();
-            ArmorItem.Type[] types = ArmorItem.Type.values();
-            for(int i = 0; i < defenses.length && i < types.length; i++) {
-                defenseMap.put(types[i].name(), defenses[i]);
-            }
-            return defenseMap;
-        };
 
         Map<String, Object> nagaProperties = new HashMap<>();
         nagaProperties.put("defense", createDefenseMap.apply(new int[]{3, 6, 7, 2, 8}));
@@ -140,7 +195,6 @@ public class ConfigHandler {
         arcticProperties.put("toughness", 2.0F);
         arcticProperties.put("knockbackResistance", 0.0F);
         tfArmorSection.put("arctic", arcticProperties);
-
 
         defaultStructure.put("twilightforest_armor_materials", tfArmorSection);
 
@@ -235,8 +289,6 @@ public class ConfigHandler {
         // --- Undergarden Item Tier Defaults (New Section) ---
         Map<String, Object> ugItemSection = new HashMap<>();
 
-        // Hardcoded values for UGItemTiers enum constants
-        // Names are uppercase to match the enum constant names
         Map<String, Object> cloggrumItemProperties = new HashMap<>();
         cloggrumItemProperties.put("durability", 286); // Maps to getUses()
         cloggrumItemProperties.put("speed", 6.0F);     // Maps to getSpeed()
@@ -283,22 +335,91 @@ public class ConfigHandler {
         }
         Map<String, JsonElement> tierSection = null;
         JsonElement tierElement = loadedConfigData.get("aether_tiers").get(tier.name());
-        if(tierElement != null && tierElement.isJsonObject()){
+        if (tierElement != null && tierElement.isJsonObject()) {
             tierSection = tierElement.getAsJsonObject().asMap();
         }
 
         if (tierSection != null && tierSection.containsKey(key)) {
             JsonElement valueElement = tierSection.get(key);
             try {
-                if (defaultValue instanceof Integer) { return (T) Integer.valueOf(valueElement.getAsInt()); }
-                else if (defaultValue instanceof Float) { return (T) Float.valueOf(valueElement.getAsFloat()); }
-                else if (defaultValue instanceof Double) { return (T) Double.valueOf(valueElement.getAsDouble()); }
+                if (defaultValue instanceof Integer) {
+                    return (T) Integer.valueOf(valueElement.getAsInt());
+                } else if (defaultValue instanceof Float) {
+                    return (T) Float.valueOf(valueElement.getAsFloat());
+                } else if (defaultValue instanceof Double) {
+                    return (T) Double.valueOf(valueElement.getAsDouble());
+                }
                 LOGGER.warn("Unhandled number type {} for config key {}. Returning default.", defaultValue.getClass().getName(), key);
                 return defaultValue;
 
             } catch (NumberFormatException | IllegalStateException e) {
                 LOGGER.warn("Invalid number format for key '{}' in tier '{}'. Using default value '{}'.", key, tier.name(), defaultValue, e);
                 return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    // --- Helper method to get a simple numeric/float value for Aether Armor Materials ---
+    // Use this for enchantability, toughness, knockbackResistance
+    public static <T extends Number> T getAetherArmorValue(String materialName, String key, T defaultValue) {
+        if (loadedConfigData == null || !loadedConfigData.containsKey("aether_armor_materials")) {
+            return defaultValue;
+        }
+        Map<String, JsonElement> materialSection = null;
+        JsonElement materialElement = loadedConfigData.get("aether_armor_materials").get(materialName);
+        if (materialElement != null && materialElement.isJsonObject()) {
+            materialSection = materialElement.getAsJsonObject().asMap();
+        }
+
+        if (materialSection != null && materialSection.containsKey(key)) {
+            JsonElement valueElement = materialSection.get(key);
+            try {
+                if (defaultValue instanceof Integer) {
+                    return (T) Integer.valueOf(valueElement.getAsInt());
+                } else if (defaultValue instanceof Float) {
+                    return (T) Float.valueOf(valueElement.getAsFloat());
+                } else if (defaultValue instanceof Double) {
+                    return (T) Double.valueOf(valueElement.getAsDouble());
+                }
+                LOGGER.warn("Unhandled number type {} for config key {}. Returning default.", defaultValue.getClass().getName(), key);
+                return defaultValue;
+
+            } catch (NumberFormatException | IllegalStateException e) {
+                LOGGER.warn("Invalid number format for key '{}' in Aether material '{}'. Using default value '{}'.", key, materialName, defaultValue, e);
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    // --- Helper method to get a Defense value for a specific ArmorItem.Type for Aether Armor ---
+    public static int getAetherArmorDefenseValue(String materialName, ArmorItem.Type type, int defaultValue) {
+        if (loadedConfigData == null || !loadedConfigData.containsKey("aether_armor_materials")) {
+            return defaultValue;
+        }
+        Map<String, JsonElement> materialSection = null;
+        JsonElement materialElement = loadedConfigData.get("aether_armor_materials").get(materialName);
+        if (materialElement != null && materialElement.isJsonObject()) {
+            materialSection = materialElement.getAsJsonObject().asMap();
+        }
+
+        if (materialSection != null && materialSection.containsKey("defense")) {
+            JsonElement defenseElement = materialSection.get("defense");
+            if (defenseElement != null && defenseElement.isJsonObject()) {
+                Map<String, JsonElement> defenseMap = defenseElement.getAsJsonObject().asMap();
+                String typeName = type.name();
+                if (defenseMap.containsKey(typeName)) {
+                    JsonElement valueElement = defenseMap.get(typeName);
+                    try {
+                        return valueElement.getAsInt();
+                    } catch (NumberFormatException | IllegalStateException e) {
+                        LOGGER.warn("Invalid number format for defense key '{}' in Aether material '{}'. Using default value '{}'.", typeName, materialName, defaultValue, e);
+                        return defaultValue;
+                    }
+                }
+            } else {
+                LOGGER.warn("Expected 'defense' for Aether material '{}' to be a JSON object, but it wasn't. Using default value '{}'.", materialName, defaultValue);
             }
         }
         return defaultValue;
@@ -312,16 +433,20 @@ public class ConfigHandler {
         }
         Map<String, JsonElement> materialSection = null;
         JsonElement materialElement = loadedConfigData.get("twilightforest_armor_materials").get(materialName);
-        if(materialElement != null && materialElement.isJsonObject()){
+        if (materialElement != null && materialElement.isJsonObject()) {
             materialSection = materialElement.getAsJsonObject().asMap();
         }
 
         if (materialSection != null && materialSection.containsKey(key)) {
             JsonElement valueElement = materialSection.get(key);
             try {
-                if (defaultValue instanceof Integer) { return (T) Integer.valueOf(valueElement.getAsInt()); }
-                else if (defaultValue instanceof Float) { return (T) Float.valueOf(valueElement.getAsFloat()); }
-                else if (defaultValue instanceof Double) { return (T) Double.valueOf(valueElement.getAsDouble()); }
+                if (defaultValue instanceof Integer) {
+                    return (T) Integer.valueOf(valueElement.getAsInt());
+                } else if (defaultValue instanceof Float) {
+                    return (T) Float.valueOf(valueElement.getAsFloat());
+                } else if (defaultValue instanceof Double) {
+                    return (T) Double.valueOf(valueElement.getAsDouble());
+                }
                 LOGGER.warn("Unhandled number type {} for config key {}. Returning default.", defaultValue.getClass().getName(), key);
                 return defaultValue;
 
@@ -340,7 +465,7 @@ public class ConfigHandler {
         }
         Map<String, JsonElement> materialSection = null;
         JsonElement materialElement = loadedConfigData.get("twilightforest_armor_materials").get(materialName);
-        if(materialElement != null && materialElement.isJsonObject()){
+        if (materialElement != null && materialElement.isJsonObject()) {
             materialSection = materialElement.getAsJsonObject().asMap();
         }
 
@@ -372,16 +497,20 @@ public class ConfigHandler {
         }
         Map<String, JsonElement> materialSection = null;
         JsonElement materialElement = loadedConfigData.get("twilightforest_tool_materials").get(materialName);
-        if(materialElement != null && materialElement.isJsonObject()){
+        if (materialElement != null && materialElement.isJsonObject()) {
             materialSection = materialElement.getAsJsonObject().asMap();
         }
 
         if (materialSection != null && materialSection.containsKey(key)) {
             JsonElement valueElement = materialSection.get(key);
             try {
-                if (defaultValue instanceof Integer) { return (T) Integer.valueOf(valueElement.getAsInt()); }
-                else if (defaultValue instanceof Float) { return (T) Float.valueOf(valueElement.getAsFloat()); }
-                else if (defaultValue instanceof Double) { return (T) Double.valueOf(valueElement.getAsDouble()); }
+                if (defaultValue instanceof Integer) {
+                    return (T) Integer.valueOf(valueElement.getAsInt());
+                } else if (defaultValue instanceof Float) {
+                    return (T) Float.valueOf(valueElement.getAsFloat());
+                } else if (defaultValue instanceof Double) {
+                    return (T) Double.valueOf(valueElement.getAsDouble());
+                }
                 LOGGER.warn("Unhandled number type {} for config key {}. Returning default.", defaultValue.getClass().getName(), key);
                 return defaultValue;
 
@@ -401,16 +530,20 @@ public class ConfigHandler {
         }
         Map<String, JsonElement> materialSection = null;
         JsonElement materialElement = loadedConfigData.get("undergarden_armor_materials").get(materialName);
-        if(materialElement != null && materialElement.isJsonObject()){
+        if (materialElement != null && materialElement.isJsonObject()) {
             materialSection = materialElement.getAsJsonObject().asMap();
         }
 
         if (materialSection != null && materialSection.containsKey(key)) {
             JsonElement valueElement = materialSection.get(key);
             try {
-                if (defaultValue instanceof Integer) { return (T) Integer.valueOf(valueElement.getAsInt()); }
-                else if (defaultValue instanceof Float) { return (T) Float.valueOf(valueElement.getAsFloat()); }
-                else if (defaultValue instanceof Double) { return (T) Double.valueOf(valueElement.getAsDouble()); }
+                if (defaultValue instanceof Integer) {
+                    return (T) Integer.valueOf(valueElement.getAsInt());
+                } else if (defaultValue instanceof Float) {
+                    return (T) Float.valueOf(valueElement.getAsFloat());
+                } else if (defaultValue instanceof Double) {
+                    return (T) Double.valueOf(valueElement.getAsDouble());
+                }
                 LOGGER.warn("Unhandled number type {} for config key {}. Returning default.", defaultValue.getClass().getName(), key);
                 return defaultValue;
 
@@ -429,7 +562,7 @@ public class ConfigHandler {
         }
         Map<String, JsonElement> materialSection = null;
         JsonElement materialElement = loadedConfigData.get("undergarden_armor_materials").get(materialName);
-        if(materialElement != null && materialElement.isJsonObject()){
+        if (materialElement != null && materialElement.isJsonObject()) {
             materialSection = materialElement.getAsJsonObject().asMap();
         }
 
@@ -457,35 +590,35 @@ public class ConfigHandler {
     // --- Helper method to get a value for UG Item Tiers (New) ---
     // Use this for durability, speed, damage, enchantmentValue
     public static <T extends Number> T getUGItemValue(UGItemTiers tier, String key, T defaultValue) {
-        // Check if config data was loaded successfully and contains the UG item section
         if (loadedConfigData == null || !loadedConfigData.containsKey("undergarden_item_tiers")) {
-            return defaultValue; // Fallback if config not loaded or section missing
+            return defaultValue;
         }
 
-        // Get the section for the specific item tier (e.g., "CLOGGRUM")
         Map<String, JsonElement> tierSection = null;
         JsonElement tierElement = loadedConfigData.get("undergarden_item_tiers").get(tier.name()); // Use enum name for key
-        if(tierElement != null && tierElement.isJsonObject()){
+        if (tierElement != null && tierElement.isJsonObject()) {
             tierSection = tierElement.getAsJsonObject().asMap();
         }
 
-        // Check if the tier section and the specific key exist
         if (tierSection != null && tierSection.containsKey(key)) {
             JsonElement valueElement = tierSection.get(key);
             try {
-                if (defaultValue instanceof Integer) { return (T) Integer.valueOf(valueElement.getAsInt()); }
-                else if (defaultValue instanceof Float) { return (T) Float.valueOf(valueElement.getAsFloat()); }
-                else if (defaultValue instanceof Double) { return (T) Double.valueOf(valueElement.getAsDouble()); }
+                if (defaultValue instanceof Integer) {
+                    return (T) Integer.valueOf(valueElement.getAsInt());
+                } else if (defaultValue instanceof Float) {
+                    return (T) Float.valueOf(valueElement.getAsFloat());
+                } else if (defaultValue instanceof Double) {
+                    return (T) Double.valueOf(valueElement.getAsDouble());
+                }
                 LOGGER.warn("Unhandled number type {} for config key {}. Returning default.", defaultValue.getClass().getName(), key);
                 return defaultValue;
 
             } catch (NumberFormatException | IllegalStateException e) {
                 LOGGER.warn("Invalid number format for key '{}' in UG item tier '{}'. Using default value '{}'.", key, tier.name(), defaultValue, e);
-                return defaultValue; // Return default on parsing error
+                return defaultValue;
             }
         }
 
-        // If tier section or key is missing, return the default value
         return defaultValue;
     }
 }

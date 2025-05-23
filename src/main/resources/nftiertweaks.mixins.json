@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "refmap": "tiermodifier.refmap.json",
   "mixins": [
+    "AetherArmorMaterialsMixin",
     "AetherItemTiersMixin",
     "TFArmorMaterialsMixin",
     "TFToolMaterialsMixin",

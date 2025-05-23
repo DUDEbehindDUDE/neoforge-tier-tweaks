@@ -14,16 +14,13 @@ public class AetherItemTiersMixin {
     @Inject(method = "getUses", at = @At("RETURN"), cancellable = true)
     private void modifyMaxUses(CallbackInfoReturnable<Integer> cir) {
         AetherItemTiers currentTier = (AetherItemTiers)(Object)this;
-        int originalUses = cir.getReturnValue(); // Get original value as default
+        int originalUses = cir.getReturnValue();
 
-        // Use the helper method to get the configured value, falling back to originalUses
         int configuredUses = ConfigHandler.getAetherValue(currentTier, "maxUses", originalUses);
 
-        // Only set the return value if the configured value is different
         if (configuredUses != originalUses) {
             cir.setReturnValue(configuredUses);
         }
-        // If value is unchanged or config not found, original value is used implicitly.
     }
 
     // --- Inject into getSpeed() to modify Mining Speed (Efficiency) ---
@@ -32,7 +29,6 @@ public class AetherItemTiersMixin {
         AetherItemTiers currentTier = (AetherItemTiers)(Object)this;
         float originalSpeed = cir.getReturnValue(); // Get original value as default
 
-        // Use the helper method, falling back to originalSpeed
         float configuredSpeed = ConfigHandler.getAetherValue(currentTier, "efficiency", originalSpeed);
 
         if (configuredSpeed != originalSpeed) {
